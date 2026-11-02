@@ -1,46 +1,49 @@
-from database.DB_connect import get_connection
-from model.strumento import Strumento
-from model.prestito import Prestito
+import mysql.connector
 
-'''
-    MODELLO:
-    - Rappresenta la struttura dati
-    - Si occupa di gestire lo stato dell'applicazione
-    - Interagisce con il database
-'''
 
 class DepositoStrumenti:
     def __init__(self, nome, responsabile):
-        self._nome = nome
-        self._responsabile = responsabile
+        self.nome = nome
+        self.responsabile = responsabile
 
-    @property
-    def nome(self):
-        return self._nome
+    @staticmethod
+    def get_db_connection():
+        # Parametri standard di XAMPP richiesti dalla traccia
+        return mysql.connector.connect(
+            host="localhost",
+            port=3306,
+            user="root",
+            password="",
+            database="deposito_strumenti"
+        )
 
-    @nome.setter
-    def nome(self, nome):
-        self._nome = nome
+    def get_tutti_strumenti(self):
+        cnx = self.get_db_connection()
+        cursor = cnx.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM strumento")
 
-    @property
-    def responsabile(self):
-        return self._responsabile
+        # fetchall() restituisce una lista, risolvendo il warning di PyCharm
+        strumenti = [
+            f"[{row['id']}] {row['nome']} - Tipo: {row['tipo']}"
+            for row in cursor.fetchall()
+        ]
 
-    @responsabile.setter
-    def responsabile(self, responsabile):
-        self._responsabile = responsabile
+        cursor.close()
+        cnx.close()
+        return strumenti
 
-    def get_strumenti(self) -> list[Strumento] | None:
-        """
-            Funzione che legge tutti gli strumenti nel database
-            :return: una lista con tutti gli strumenti presenti oppure None
-        """
-        # TODO
+    def cerca_per_tipo(self, tipo):
+        cnx = self.get_db_connection()
+        cursor = cnx.cursor(dictionary=True)
 
-    def cerca_strumenti_per_tipo(self, tipo) -> list[Strumento] | None:
-        """
-            Funzione che recupera una lista con tutti gli strumenti presenti nel database di un certo tipo
-            :param tipo: il tipo dello strumento (es. "Chitarra")
-            :return: una lista con tutti gli strumenti del tipo indicato oppure None
-        """
-        # TODO
+        query = "SELECT * FROM strumento WHERE tipo = %s"
+        cursor.execute(query, (tipo,))
+
+        strumenti = [
+            f"[{row['id']}] {row['nome']} - Tipo: {row['tipo']}"
+            for row in cursor.fetchall()
+        ]
+
+        cursor.close()
+        cnx.close()
+        return strumenti

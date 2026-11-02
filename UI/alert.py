@@ -10,10 +10,12 @@ class AlertManager:
 
     def show_alert(self, message: str):
         self._alert_dialog.title.value = message
-        if self._alert_dialog.open:
-            self._page.update()
-        else:
-            self._page.show_dialog(self._alert_dialog)
+        # Aggiunge il dialog alla lista overlay della pagina se non è già presente
+        if self._alert_dialog not in self._page.overlay:
+            self._page.overlay.append(self._alert_dialog)
+        self._alert_dialog.open = True
+        self._page.update()
 
     def close(self, e):
-        self._page.pop_dialog()
+        self._alert_dialog.open = False
+        self._page.update()
